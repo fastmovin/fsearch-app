@@ -171,7 +171,7 @@ public struct PanelMenuModel: Equatable, Sendable {
         case .appMenu:
             close()
             return .close
-        case .cmdEnter, .cmdY, .cmdShiftC, .cmdDigit, .cmdK, .backspaceOnEmpty:
+        case .cmdEnter, .cmdY, .cmdShiftC, .cmdDigit, .cmdK, .backspaceOnEmpty, .typeMenu:
             return .none
         }
     }

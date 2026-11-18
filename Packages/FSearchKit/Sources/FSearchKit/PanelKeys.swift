@@ -24,6 +24,8 @@ public enum PanelKey: Equatable, Sendable {
     case backspaceOnEmpty
     /// Opens or closes the FSearch menu (⌘/); the panel's rows never see it.
     case appMenu
+    /// Opens the type dropdown's menu (⌘P); the panel's rows never see it.
+    case typeMenu
 
     /// The ⌘-letter bindings, matched ignoring case: Caps Lock or Shift change the character.
     ///
@@ -36,12 +38,13 @@ public enum PanelKey: Equatable, Sendable {
         case ("y", false): .cmdY
         case ("k", false): .cmdK
         case ("c", true): .cmdShiftC
+        case ("p", false): .typeMenu
         default: nil
         }
     }
 
-    /// ANSI key codes (Carbon's kVK_ANSI_Y, _K, _C) for the bound letters.
-    static let letterKeyCodes: [UInt16: String] = [0x10: "y", 0x28: "k", 0x08: "c"]
+    /// ANSI key codes (Carbon's kVK_ANSI_Y, _K, _C, _P) for the bound letters.
+    static let letterKeyCodes: [UInt16: String] = [0x10: "y", 0x28: "k", 0x08: "c", 0x23: "p"]
 
     /// The character decides when it is an ASCII letter (QWERTY, Dvorak, AZERTY
     /// all type Latin letters with ⌘). On a non-Latin layout (Russian, Greek)
@@ -59,7 +62,7 @@ public enum PanelKey: Equatable, Sendable {
     public var actsOnResults: Bool {
         switch self {
         case .enter, .cmdEnter, .cmdY, .cmdShiftC, .cmdDigit, .cmdK: true
-        case .up, .down, .escape, .backspaceOnEmpty, .appMenu: false
+        case .up, .down, .escape, .backspaceOnEmpty, .appMenu, .typeMenu: false
         }
     }
 }
@@ -116,9 +119,15 @@ public struct PanelState: Equatable, Sendable {
     public var count: Int
     /// The file (result) rows, which come first and are the only ones ⌘1–9 open; nil means all rows are files.
     public var files: Int?
+    /// The type dropdown's pick, kept so reopening within the resume window keeps it.
+    public var typeFilter: TypeFilter?
     /// Creates a state; the defaults are an empty panel.
-    public init(query: String = "", mode: SearchMode = .names, selection: Int = 0, count: Int = 0, files: Int? = nil) {
+    public init(
+        query: String = "", mode: SearchMode = .names, selection: Int = 0, count: Int = 0, files: Int? = nil,
+        typeFilter: TypeFilter? = nil
+    ) {
         (self.query, self.mode, self.selection, self.count, self.files) = (query, mode, selection, count, files)
+        self.typeFilter = typeFilter
     }
 }
 
@@ -156,6 +165,8 @@ extension PanelState {
             return .none
         // The view opens the FSearch menu; the rows don't change.
         case .appMenu: return .none
+        // The view opens the type menu.
+        case .typeMenu: return .none
         }
     }
 }

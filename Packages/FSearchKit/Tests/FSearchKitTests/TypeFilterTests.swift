@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import FSearchKit
@@ -43,5 +44,72 @@ import Testing
         #expect(TypeFilter.fonts.matches(path: "/x.ttf", isDirectory: false))
         #expect(TypeFilter.apps.matches(path: "/A/Safari.app", isDirectory: true))
         #expect(!TypeFilter.images.matches(path: "/noext", isDirectory: false))
+    }
+}
+
+@MainActor @Suite struct TypeFilterModelTests {
+    @Test func namesSearchCarriesTheToken() async {
+        let names = RecordingBackend(), content = RecordingBackend()
+        let m = SearchModel(names: names, content: content)
+        m.query = "invoice"
+        m.typeFilter = .folders
+        await m.refresh()
+        #expect(names.calls == ["search invoice kind:dir"])
+        m.query = "invoice kind:file"
+        await m.refresh()
+        #expect(names.calls.last == "search invoice kind:file", "a typed filter wins")
+    }
+
+    @Test func contentSearchesNeverCarryIt() async {
+        let names = RecordingBackend(), content = RecordingBackend()
+        let m = SearchModel(names: names, content: content)
+        m.typeFilter = .images
+        m.mode = .content
+        m.query = "TODO"
+        await m.refresh()
+        m.mode = .names
+        m.query = "main grep:x"
+        await m.refresh()
+        #expect(content.calls == ["grep |TODO|literal", "grep main|x|literal"])
+    }
+
+    @Test func aNewPickMakesTheRowsStale() async {
+        let m = SearchModel(names: RecordingBackend(), content: RecordingBackend())
+        m.query = "invoice"
+        await m.refresh()
+        #expect(m.resultsAreCurrent)
+        m.typeFilter = .code
+        #expect(!m.resultsAreCurrent)
+        await m.refresh()
+        #expect(m.resultsAreCurrent && m.answeredType == .code)
+    }
+
+    @Test func aNewPickOverAHalfTypedFilterStillRefreshes() async {
+        let names = RecordingBackend()
+        let m = SearchModel(names: names, content: RecordingBackend())
+        m.query = "foo"
+        await m.refresh()
+        m.query = "foo ext:"
+        await m.refresh()
+        #expect(m.phase == .results, "the rows for foo stay while ext: is typed")
+        m.typeFilter = .code
+        await m.refresh()
+        #expect(m.items.isEmpty && m.phase == .idle && m.answeredType == .code, "rows for the old pick go")
+        m.query = "foo ext:md"
+        await m.refresh()
+        #expect(names.calls.last == "search foo ext:md type:code")
+    }
+
+    @Test func keyAndSession() {
+        #expect(PanelKey.commandLetter("p", shift: false) == .typeMenu)
+        #expect(PanelKey.commandLetter("з", shift: false, keyCode: 0x23) == .typeMenu)
+        #expect(!PanelKey.typeMenu.actsOnResults)
+        var s = PanelState(query: "a", selection: 2, count: 5, typeFilter: .images)
+        let before = s
+        #expect(s.reduce(.typeMenu) == .none && s == before)
+        var session = PanelSession()
+        session.hidden(s, at: Date(timeIntervalSince1970: 0))
+        #expect(session.opened(at: Date(timeIntervalSince1970: 30)).typeFilter == .images)
+        #expect(session.opened(at: Date(timeIntervalSince1970: 61)).typeFilter == nil)
     }
 }

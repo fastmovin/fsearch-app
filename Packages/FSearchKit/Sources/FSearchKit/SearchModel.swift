@@ -78,6 +78,8 @@ public final class SearchModel {
     public var query = ""
     /// The mode to search in.
     public var mode: SearchMode = .names
+    /// The type dropdown's pick; name searches send its token (see ``TypeFilter``).
+    public var typeFilter: TypeFilter?
     /// The current results (at most ``shownLimit``); see ``resultsAreCurrent``.
     public private(set) var items: [ResultItem] = []
     /// Where the current search is.
@@ -92,7 +94,9 @@ public final class SearchModel {
     /// half-typed filter keeps older rows up, and when a late reply answers a
     /// query that has since changed. Acting on a row (↵, ⌘↵, ⌘Y, ⌘K, ⌘1–9)
     /// should wait for it, or a stale row is opened.
-    public var resultsAreCurrent: Bool { answered.query == query && answered.mode == mode }
+    public var resultsAreCurrent: Bool { answered.query == query && answered.mode == mode && answeredType == typeFilter }
+    /// The type pick that `items` answer; it lags ``typeFilter`` like `answered` lags the query.
+    public private(set) var answeredType: TypeFilter?
     /// Called once for each search that completes as the newest generation, with its outcome (for the debug log).
     @ObservationIgnored public var onSearched: ((LogEntry) -> Void)?
     /// Called with the new phase every time a search finishes (results,
@@ -106,6 +110,7 @@ public final class SearchModel {
     @ObservationIgnored private var generation = 0
     /// The query and mode of the newest refresh that searched or cleared.
     @ObservationIgnored private var requested: (query: String, mode: SearchMode) = ("", .names)
+    @ObservationIgnored private var requestedType: TypeFilter?
     /// The backend call of the newest refresh; a newer refresh cancels it, so a
     /// hung daemon costs one timeout, not one per keystroke.
     @ObservationIgnored private var inflight: Task<([ResultItem], UInt64), Error>?
@@ -138,14 +143,15 @@ public final class SearchModel {
         // a tail was pasted, or the mode changed) those rows answer something
         // else: clear them, still sending nothing.
         let halfTyped = QuerySplit.endsInHalfTypedFilter(query, mode: mode)
-        if halfTyped && mode == requested.mode && QuerySplit.halfTypedExtends(query, answered: requested.query, mode: mode) { return }
+        if halfTyped && mode == requested.mode && typeFilter == requestedType && QuerySplit.halfTypedExtends(query, answered: requested.query, mode: mode) { return }
         generation += 1
         inflight?.cancel()
         inflight = nil
-        let gen = generation, q = query, mode = self.mode
-        requested = (q, mode)
+        let gen = generation, q = query, mode = self.mode, type = typeFilter
+        (requested, requestedType) = ((q, mode), type)
         if halfTyped {
             (items, phase, lastTookUs, answered) = ([], .idle, nil, (q, mode))
+            answeredType = type
             return
         }
         // Nothing to send: a blank query, the "?" cheat sheet, or a content
@@ -153,17 +159,19 @@ public final class SearchModel {
         // value yet (an empty pattern matches every line).
         if Self.isBlank(q) || QuerySyntax.isCheatSheet(q) || Self.emptyPattern(q, mode) {
             (items, phase, lastTookUs, answered) = ([], .idle, nil, (q, mode))
+            answeredType = type
             return
         }
         phase = .loading
         let started = Date()
-        let task = Task { try await self.run(q, mode) }
+        let task = Task { try await self.run(q, mode, type) }
         inflight = task
         do {
             let (all, took) = try await task.value
             let found = Array(all.prefix(Self.shownLimit))
             guard gen == generation else { return }
             (items, phase, lastTookUs, answered) = (found, .results, took, (q, mode))
+            answeredType = type
             report(q, mode, found.count, took, started, nil)
         } catch is CancellationError {
             // Superseded by a newer refresh (or the caller went away): no state change.
@@ -171,11 +179,13 @@ public final class SearchModel {
         } catch let e as DaemonError {
             guard gen == generation else { return }
             (items, lastTookUs, answered) = ([], nil, (q, mode))
+            answeredType = type
             if case .indexing = e { phase = .indexing } else { phase = .failed(e) }
             report(q, mode, 0, nil, started, String(describing: e))
         } catch {
             guard gen == generation else { return }
             (items, phase, lastTookUs, answered) = ([], .failed(.badReply(String(describing: error))), nil, (q, mode))
+            answeredType = type
             report(q, mode, 0, nil, started, String(describing: error))
         }
     }
@@ -192,7 +202,7 @@ public final class SearchModel {
         q.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
-    private func run(_ q: String, _ mode: SearchMode) async throws -> ([ResultItem], UInt64) {
+    private func run(_ q: String, _ mode: SearchMode, _ type: TypeFilter?) async throws -> ([ResultItem], UInt64) {
         switch mode {
         case .names:
             // grep:/regex:/sym: make the daemon answer with lines: run it as the content search it is.
@@ -202,9 +212,9 @@ public final class SearchModel {
             }
             // 50 rows fill the panel with room to scroll; more only slows the answer.
             // A typed `limit:` overrides it (the request then leaves it out).
-            let forms = Self.normalForms(q)
+            let forms = Self.normalForms(TypeFilter.query(q, with: type))
             if forms.count == 1 {
-                let r = try await names.search(q, limit: 50)
+                let r = try await names.search(forms[0], limit: 50)
                 return (r.hits.map(ResultItem.file), r.tookUs)
             }
             var hits: [Hit] = [], took: UInt64 = 0

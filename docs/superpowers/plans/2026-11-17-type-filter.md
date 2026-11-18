@@ -68,7 +68,7 @@
   - `PanelKey.commandLetter("p", shift: false) == .typeMenu`; `.typeMenu.actsOnResults == false`; reducing `.typeMenu` returns `.none` and leaves the state unchanged.
   - `PanelSession` round trip keeps `typeFilter`.
 - [ ] **Step 2: Run** `swift test`: those fail.
-- [ ] **Step 3: Implement.** `refresh` captures `typeFilter` with `q` and `mode`, records `requestedType`, and the half-typed early return also needs `typeFilter == requestedType`. Every place that sets `answered` also sets `answeredType`. `run` applies `TypeFilter.query` only on the plain names path (not the `contentSearch` branch), and `report` logs the query as sent. Map key code `0x23` to `"p"`.
+- [ ] **Step 3: Implement.** `refresh` captures `typeFilter` with `q` and `mode`, records `requestedType`, and the half-typed early return also needs `typeFilter == requestedType`. Every place that sets `answered` also sets `answeredType`. `run` applies `TypeFilter.query` only on the plain names path (not the `contentSearch` branch) (the debug log keeps the typed query). Map key code `0x23` to `"p"`.
 - [ ] **Step 4: Run** `make test`: all pass.
 - [ ] **Step 5: Commit** `Model and keys for the type filter`.
 
