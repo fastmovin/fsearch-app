@@ -174,7 +174,7 @@ enum PanelInput {
     @MainActor
     static func rowsAreCurrent(_ model: SearchModel) -> Bool {
         if model.resultsAreCurrent || (model.query.isEmpty && model.mode == .names) { return true }
-        return model.phase == .results && model.mode == model.answered.mode
+        return model.phase == .results && model.mode == model.answered.mode && model.answeredType == model.typeFilter
             && QuerySplit.halfTypedExtends(model.query, answered: model.answered.query, mode: model.mode)
     }
 

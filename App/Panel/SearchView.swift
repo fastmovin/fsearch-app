@@ -37,7 +37,8 @@ struct SearchView: View {
         // Reading the generation makes a trash or open re-read the recents.
         _ = app.recentsGeneration
         return model.query.isEmpty && model.mode == .names
-            ? app.recents.entries.map { .file(Hit(path: $0.path, kind: $0.isDirectory ? "dir" : "file", size: 0, mtime: 0, score: 0)) }
+            ? app.recents.entries.filter { model.typeFilter?.matches(path: $0.path, isDirectory: $0.isDirectory) ?? true }
+                .map { .file(Hit(path: $0.path, kind: $0.isDirectory ? "dir" : "file", size: 0, mtime: 0, score: 0)) }
             : model.items
     }
 
@@ -54,6 +55,38 @@ struct SearchView: View {
         return revealCache.revealsOnReturn(shown[state.selection], editor: app.editor)
     }
     private var showsLines: Bool { if case .line = shown.first { true } else { false } }
+    /// The type pick, when it narrows what is shown: name search with no typed `type:`/`kind:`.
+    private var appliedType: TypeFilter? {
+        model.mode == .names && !TypeFilter.typedFilter(in: model.query) ? model.typeFilter : nil
+    }
+
+    /// The dropdown at the right of the field, name search only.
+    private var typeButton: some View {
+        let typed = TypeFilter.typedFilter(in: model.query)
+        let title = typed ? "Typed filter" : (model.typeFilter?.title ?? "All types")
+        return HStack(spacing: 4) {
+            Text(title)
+            Image(systemName: "chevron.down").font(.system(size: 9, weight: .semibold))
+        }
+        .font(.system(size: 12))
+        .foregroundStyle(appliedType != nil ? Color.accentColor : .secondary)
+        .padding(.horizontal, 8).padding(.vertical, 3)
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(appliedType != nil ? Color.accentColor : .secondary.opacity(0.4)))
+        .contentShape(Rectangle())
+        .onTapGesture(perform: showTypeMenu)
+        .onPanelFrame { geometry.typeButton = $0 }
+        .help("Filter by type (⌘P)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Type filter")
+        .accessibilityValue(title)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, showTypeMenu)
+        .accessibilityIdentifier("typeFilter")
+    }
+
+    private func showTypeMenu() {
+        TypeMenu.show(model: model, in: PanelController.shared.panel?.contentView, under: geometry.typeButton)
+    }
 
     var body: some View {
         let rows = rows
@@ -76,6 +109,7 @@ struct SearchView: View {
                         held.key.cancel()  // a key held for the old query never runs on the new one
                         Task { await model.refresh() }
                     }
+                if model.mode == .names { typeButton }
                 if app.debugMode { Circle().fill(.orange).frame(width: 6, height: 6).help("Debug mode") }
             }
             .padding(14)
@@ -93,7 +127,7 @@ struct SearchView: View {
                             cheatSheet
                         }
                         if !shown.isEmpty {
-                            section(model.query.isEmpty ? "Recent" : (showsLines ? "Inside files" : "Files"))
+                            section(model.query.isEmpty ? "Recent" : (showsLines ? "Inside files" : (appliedType?.title ?? "Files")))
                             ForEach(Array(shown.enumerated()), id: \.element.id) { i, item in
                                 ResultRow(item: item, query: highlightQuery, selected: i == state.selection)
                                     .id(item.id)
@@ -171,6 +205,12 @@ struct SearchView: View {
         // ↑/↓ pressed in Quick Look, which holds the keyboard while it is up.
         .onChange(of: keys.last) { if let k = keys.last?.key { act(k) } }
         .onChange(of: model.mode) { held.key.cancel() }
+        // A new type pick: new rows, from the top; a key held for the old ones never runs.
+        .onChange(of: model.typeFilter) {
+            state.selection = 0
+            held.key.cancel()
+            Task { await model.refresh() }
+        }
         .overlay(alignment: .bottomLeading) { AppMenuOverlay(menu: menu) { AppMenuActions.run($0, app: app) } }
         // The menu's field had the keyboard: give it back to the search field.
         .onChange(of: menu.isOpen) { _, open in if !open { focused = true } }
@@ -245,6 +285,11 @@ struct SearchView: View {
         if let r = menu.handle(p, run: { AppMenuActions.run($0, app: app) }) { return r }
         guard let key = PanelInput.key(for: p, queryIsEmpty: model.query.isEmpty) else {
             return PanelInput.swallows(p) ? .handled : .ignored
+        }
+        // ⌘P opens the type menu, in name search only.
+        if key == .typeMenu {
+            if model.mode == .names { showTypeMenu() }
+            return .handled
         }
         // A result key waits for results that answer the query in the box.
         if let now = PanelInput.gate(key, held: &held.key, model: model) { act(now) }

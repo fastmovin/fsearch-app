@@ -81,7 +81,7 @@
 
 **Interfaces:**
 - Consumes: Tasks 1 and 2.
-- Produces: `enum TypeMenu { static func build(model: SearchModel) -> NSMenu; static var popUp: @MainActor (NSMenu, NSPoint, NSView) -> Void; static func show(model: SearchModel, in view: NSView?, at: CGRect) }`.
+- Produces: `enum TypeMenu { static func build(model: SearchModel) -> NSMenu; static var popUp: @MainActor (NSMenu, NSPoint, NSView) -> Void; static func show(model: SearchModel, in view: NSView?, under button: CGRect) }`.
 
 - [ ] **Step 1: Write the failing tests:**
   - `TypeMenu.build` has 10 items titled "All types", then each `TypeFilter.title` in case order; the item for the current pick has state `.on`; running item 2's action sets `model.typeFilter = .folders`, and item 0 sets nil.

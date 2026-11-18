@@ -101,6 +101,8 @@ final class PanelGeometry {
     var list: CGRect = .zero
     /// The search field's row; the menu opens under it when no row is in view.
     var field = CGRect(x: 0, y: 0, width: 680, height: 50)
+    /// The type dropdown; its menu opens under it.
+    var typeButton = CGRect(x: 560, y: 12, width: 100, height: 22)
 
     /// New rows arrived: keep the frames of rows still shown (one that didn't
     /// move never reports again) and drop the rest, so `rows` stays small.
