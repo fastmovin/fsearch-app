@@ -14,9 +14,10 @@ import Testing
     }
 
     @Test func tokenIsAppended() {
-        #expect(TypeFilter.query("invoice", with: .images) == "invoice type:image")
+        #expect(TypeFilter.query("invoice", with: .images) == "type:image invoice")
         #expect(TypeFilter.query("invoice", with: nil) == "invoice")
         #expect(TypeFilter.query("", with: .folders) == "kind:dir")
+        #expect(TypeFilter.query("\"my fi", with: .folders) == "kind:dir \"my fi", "an open quote can't swallow it")
     }
 
     @Test func typedFilterWins() {
@@ -55,7 +56,7 @@ import Testing
         m.query = "invoice"
         m.typeFilter = .folders
         await m.refresh()
-        #expect(names.calls == ["search invoice kind:dir"])
+        #expect(names.calls == ["search kind:dir invoice"])
         m.query = "invoice kind:file"
         await m.refresh()
         #expect(names.calls.last == "search invoice kind:file", "a typed filter wins")
@@ -98,7 +99,7 @@ import Testing
         #expect(m.items.isEmpty && m.phase == .idle && m.answeredType == .code, "rows for the old pick go")
         m.query = "foo ext:md"
         await m.refresh()
-        #expect(names.calls.last == "search foo ext:md type:code")
+        #expect(names.calls.last == "search type:code foo ext:md")
     }
 
     @Test func keyAndSession() {

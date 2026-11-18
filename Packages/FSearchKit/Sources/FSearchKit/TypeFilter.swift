@@ -26,10 +26,11 @@ public enum TypeFilter: String, CaseIterable, Sendable {
         }
     }
 
-    /// The name query to send: `q` plus the pick's token, unless `q` has a typed type filter.
+    /// The name query to send: the pick's token, then `q`, unless `q` has a typed type filter.
+    /// The token goes first so a quote still open at the end of `q` can't swallow it.
     public static func query(_ q: String, with f: TypeFilter?) -> String {
         guard let f, !typedFilter(in: q) else { return q }
-        return q.isEmpty ? f.token : q + " " + f.token
+        return q.isEmpty ? f.token : f.token + " " + q
     }
 
     /// True if the query has a `type:` or `kind:` word with a value; the daemon unquotes, so quotes don't hide one.

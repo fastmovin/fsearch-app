@@ -55,9 +55,10 @@ struct SearchView: View {
         return revealCache.revealsOnReturn(shown[state.selection], editor: app.editor)
     }
     private var showsLines: Bool { if case .line = shown.first { true } else { false } }
-    /// The type pick, when it narrows what is shown: name search with no typed `type:`/`kind:`.
+    /// The type pick, when it narrows what is shown: name search with no typed `type:`/`kind:` and no `grep:`/`sym:`.
     private var appliedType: TypeFilter? {
-        model.mode == .names && !TypeFilter.typedFilter(in: model.query) ? model.typeFilter : nil
+        model.mode == .names && !TypeFilter.typedFilter(in: model.query) && !QuerySplit.hasContentKey(model.query)
+            ? model.typeFilter : nil
     }
 
     /// The dropdown at the right of the field, name search only.
