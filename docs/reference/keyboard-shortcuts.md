@@ -19,6 +19,7 @@ This page lists every keyboard shortcut in FSearch for Mac.
 | ⌘Y | Quick Look the selected file. While the preview is up, ↑ and ↓ (with no modifiers) move the selection and the preview follows; ⌘ or ⇧ arrows go to Quick Look. Press ⌘Y again to close it. |
 | ⌘⇧C | Copy the selected file's path |
 | ⌘K | Open the actions menu under the selected file |
+| ⌘P | Open the type menu (All types, Folders, Documents, Images, Code, Video, Audio, Archives, Fonts, Apps) to narrow a name search. Name search only. |
 | ⌘/ | Open or close the FSearch menu. See [FSearch menu (⌘/)](#fsearch-menu-) below. |
 | ⌘1 to ⌘9 | Open the first to ninth file result. It never lands on a command or "Use … with…" row. |
 | Esc | Clear the query. If the query is already empty, remove the **Inside files** or **Definitions** chip. If there is no chip, hide the panel. |

@@ -136,7 +136,8 @@ final class PanelController: PanelHost {
         held.key.cancel()
         menu.close()
         guard let p = panel, p.isVisible, let app else { return }
-        session.hidden(PanelState(query: app.search.query, mode: app.search.mode, selection: selection, typeFilter: app.search.typeFilter), at: Date())
+        session.hidden(
+            PanelState(query: app.search.query, mode: app.search.mode, selection: selection, typeFilter: app.search.typeFilter), at: Date())
         p.orderOut(nil)
         QuickLookSource.shared.close()
         // The unit-test host never moves focus between apps.

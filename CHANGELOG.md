@@ -14,6 +14,7 @@ Nothing has been released yet. Version 0.1.0 will be the first release. "Fixed" 
 - Launcher panel, opened with ⌥Space by default. It has a Raycast-style layout: file icons, the name with the match highlighted, and the folder in grey.
 - "Use '<query>' with…" rows with two chips: Search inside files and Find definitions.
 - A `?` query-syntax cheat sheet. Type `?` alone to see it.
+- A type dropdown at the right of the search field (⌘P): Folders, Documents, Images, Code, Video, Audio, Archives, Fonts or Apps. It narrows name search and the recent files.
 - Recent files when the query is empty.
 - The panel resumes where you left off if you reopen it within 60 seconds.
 - Keyboard control: ↑ ↓ ⌃N ⌃P to move, ↵ to open, ⌘↵ to reveal, ⌘Y for Quick Look, ⌘⇧C to copy the path, ⌘1–9 to open the Nth file, ⌘K for the actions menu.

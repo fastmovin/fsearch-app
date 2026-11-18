@@ -9,7 +9,8 @@ import Testing
         #expect(TypeFilter.documents.token == "type:doc")
         #expect(TypeFilter.archives.token == "type:archive")
         #expect(TypeFilter.apps.token == "type:app")
-        #expect(TypeFilter.allCases.map(\.title) == ["Folders", "Documents", "Images", "Code", "Video", "Audio", "Archives", "Fonts", "Apps"])
+        #expect(
+            TypeFilter.allCases.map(\.title) == ["Folders", "Documents", "Images", "Code", "Video", "Audio", "Archives", "Fonts", "Apps"])
     }
 
     @Test func tokenIsAppended() {

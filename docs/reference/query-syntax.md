@@ -46,6 +46,10 @@ A filter is `key:value`. Keys are lowercase and case-sensitive. A word that star
 
 An unknown `type:` or `kind:` value shows an error under the search field.
 
+### The type dropdown
+
+In name search, the dropdown at the right of the search field (or ⌘P) narrows results to Folders, Documents, Images, Code, Video, Audio, Archives, Fonts or Apps. It adds `kind:dir` or the matching `type:` filter to the search for you, and with an empty query it filters the recent files. A `type:` or `kind:` you type yourself takes over, and the dropdown then reads **Typed filter**. The pick stays when you reopen the panel within 60 seconds.
+
 ### Typing a filter
 
 While you are still typing the last word of a filter, the panel waits: it sends nothing, so daemon errors don't flash up as you type. The last word counts as unfinished when it is:

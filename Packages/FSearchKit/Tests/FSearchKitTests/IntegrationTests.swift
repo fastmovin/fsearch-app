@@ -32,4 +32,25 @@ struct IntegrationTests {
         }
         #expect(grep?.files.first?.matches.first?.line == 2)
     }
+
+    /// The daemon accepts every token the type dropdown sends and narrows by it.
+    @Test func typeDropdownTokensNarrowNames() async throws {
+        let files = ["egretbills/x.txt", "egret.pdf", "egret.jpg", "egret.swift", "egret.zip", "egret.mp3", "egret.mov", "egret.ttf"]
+        let d = try RealDaemon(files: Dictionary(uniqueKeysWithValues: files.map { ($0, "x") }))
+        defer { withExtendedLifetime(d) {} }
+        let c = DaemonClient(socketPath: d.socketPath)
+        try await waitReady(c)
+        func names(_ f: TypeFilter) async throws -> [String] {
+            try await c.search(TypeFilter.query("egret", with: f), limit: 50).hits.map { ($0.path as NSString).lastPathComponent }
+        }
+        #expect(try await names(.folders) == ["egretbills"])
+        #expect(try await names(.documents) == ["egret.pdf"])
+        #expect(try await names(.images) == ["egret.jpg"])
+        #expect(try await names(.code) == ["egret.swift"])
+        #expect(try await names(.archives) == ["egret.zip"])
+        #expect(try await names(.audio) == ["egret.mp3"])
+        #expect(try await names(.video) == ["egret.mov"])
+        #expect(try await names(.fonts) == ["egret.ttf"])
+        for f in TypeFilter.allCases { _ = try await names(f) }  // no token is rejected (apps has no fixture)
+    }
 }
