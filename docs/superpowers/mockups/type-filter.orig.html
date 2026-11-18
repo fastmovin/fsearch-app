@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en" data-markup-page="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FSearch type filter mockups</title>
+<style id="mk-style">
+:root{--ink:#1d2330;--muted:#5d6675;--line:#d9dde4;--bg:#f6f7f9;--accent:#2b5fd9;--hl:#fff1a8;--hl-on:#ffd84d;--box:#e0572b}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+#mk-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 14px;background:#fff;border-bottom:1px solid var(--line)}
+#mk-bar .t{font-weight:600;margin-right:10px;max-width:40ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mk-bar button{font:inherit;font-size:14px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+#mk-bar button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+#mk-bar .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+#mk-bar .who{font-size:13px;color:var(--muted)}
+#mk-bar .who input{width:9ch;font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:5px}
+#mk-status{margin-left:auto;font-size:13px;color:var(--muted)}
+#mk-status.err{color:#b3261e;font-weight:600}
+#mk-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;max-width:1280px;margin:18px auto;padding:0 14px}
+#doc{position:relative;background:#fff;border:1px solid var(--line);border-radius:10px;padding:28px 36px;min-height:60vh;outline:none}
+#doc[contenteditable=true]{box-shadow:0 0 0 3px #e7eefc}
+#doc img{max-width:100%;cursor:pointer}
+#doc img.mk-img-c{outline:3px solid var(--hl-on);outline-offset:2px}
+#doc img.mk-picked{outline:3px dashed var(--accent);outline-offset:2px}
+#doc table{border-collapse:collapse;margin:12px 0}
+#doc th,#doc td{border:1px solid var(--line);padding:5px 9px;vertical-align:top}
+mark.mk-c{background:var(--hl);color:inherit;border-radius:2px;cursor:pointer}
+mark.mk-c.on{background:var(--hl-on)}
+.mk-box{position:absolute;border:2px solid var(--box);background:rgba(224,87,43,.08);border-radius:4px;cursor:pointer}
+.mk-box.on{background:rgba(224,87,43,.22)}
+.mk-draw{position:absolute;border:2px dashed var(--box);pointer-events:none}
+body.mk-boxmode #doc{cursor:crosshair}
+body.mk-hide mark.mk-c{background:none}
+body.mk-hide .mk-box,body.mk-hide #mk-side{display:none}
+body.mk-hide #mk-wrap{grid-template-columns:minmax(0,1fr)}
+#mk-side{align-self:start;position:sticky;top:60px;max-height:calc(100vh - 80px);overflow:auto}
+#mk-side h3{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600}
+.mk-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--hl-on);border-radius:8px;padding:9px 10px;margin-bottom:10px;font-size:14px}
+.mk-card.k-area{border-left-color:var(--box)}
+.mk-card.k-image{border-left-color:var(--accent)}
+.mk-card.on{box-shadow:0 0 0 2px var(--accent)}
+.mk-card.done{opacity:.55}
+.mk-card .q{color:var(--muted);font-style:italic;margin:2px 0 6px;max-height:4.5em;overflow:hidden}
+.mk-card .row{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:5px}
+.mk-card input[type=text]{font:inherit;font-size:12px;padding:2px 5px;border:1px solid var(--line);border-radius:4px;width:11ch}
+.mk-card textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:5px;padding:5px;min-height:3.2em;resize:vertical}
+.mk-card .rep{border-top:1px dashed var(--line);margin-top:6px;padding-top:5px;font-size:13px}
+.mk-card .act{display:flex;gap:8px;justify-content:flex-end;margin-top:5px}
+.mk-card .act button{font-size:12px;border:none;background:none;color:var(--accent);cursor:pointer;padding:0}
+.mk-card .act button:disabled{color:var(--muted);cursor:default}
+.mk-card .send{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--muted)}
+.mk-card .send button{font-size:12px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:6px;padding:3px 9px;cursor:pointer}
+#mk-changed{flex-basis:100%;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#B42318;color:#fff;border-radius:8px;padding:9px 14px;font-size:14px}
+#mk-changed b{flex:1;min-width:220px}
+#mk-changed button{background:#fff;color:#B42318;border:none;border-radius:6px;padding:5px 11px;font-weight:600;cursor:pointer}
+body.mk-pane-closed #mk-side{display:none}
+body.mk-pane-closed #mk-wrap{grid-template-columns:minmax(0,1fr);max-width:1500px}
+.mk-tree{margin:14px 0;font-size:14px;line-height:1.4}
+.mk-tree ul{list-style:none;margin:0;padding-left:26px;border-left:1px solid var(--line)}
+.mk-tree>ul{padding-left:0;border-left:none}
+.mk-tree li{position:relative;margin:5px 0}
+.mk-tree ul ul>li::before{content:"";position:absolute;left:-26px;top:14px;width:20px;border-top:1px solid var(--line)}
+.mk-tree li.mk-collapsed>ul{display:none}
+.mk-n{display:inline-block;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.mk-n b{font-weight:600}.mk-n i{font-style:normal;color:var(--muted);margin-left:6px}
+.mk-n.it{border-color:#9db5ee;background:#f2f6ff}.mk-n.ot{border-color:#9fd3b0;background:#f1faf4}
+.mk-n.new{border-style:dashed;border-width:2px}.mk-n.stay{background:#f3f3f3;color:var(--muted)}.mk-n.ctr{border-style:dotted;color:var(--muted)}
+.mk-tg{display:inline-block;width:20px;text-align:center;cursor:pointer;color:var(--accent);user-select:none}
+.mk-tg::before{content:"\25BE"}li.mk-collapsed>.mk-tg::before{content:"\25B8"}.mk-tg.leaf{visibility:hidden}
+.mk-ct{font-size:12px;color:var(--muted);margin-left:6px;cursor:pointer}
+.mk-n.grp{border:none;background:none;padding:2px 0;font-size:11px;font-weight:600;color:var(--muted)}
+/* .mk-tree.mk-org: a traditional top-down chart. Top-level boxes sit side by side, the top person's reports (and any li.mk-row's) form a connected row, and deeper levels hang below their box. */
+.mk-org{overflow-x:auto;padding-bottom:6px;font-size:12.5px;line-height:1.3}
+.mk-org>ul{display:flex;gap:28px;align-items:flex-start;justify-content:center;width:max-content;min-width:100%}
+.mk-org li{margin:0}
+.mk-org .mk-n{display:block;min-width:150px;max-width:220px;padding:4px 8px}
+.mk-org .mk-n b,.mk-org .mk-n i{display:block;margin-left:0}
+.mk-org .mk-ct{margin-left:0;font-size:11px;color:var(--accent)}
+.mk-org .mk-tg{width:auto;margin-left:6px}
+.mk-org .mk-n.grp{min-width:0}
+.mk-org li>ul{margin-left:14px;padding-left:12px;border-left:1px solid #9aa3b2}
+.mk-org li>ul>li{position:relative;margin-top:6px}
+.mk-org li>ul>li::before{content:"";position:absolute;left:-12px;top:14px;width:12px;border-top:1px solid #9aa3b2}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>.mk-n{margin:0 auto;text-align:center}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul{display:flex;align-items:flex-start;justify-content:center;position:relative;margin:0;padding:10px 0 0;border-left:none}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul::before{content:"";position:absolute;top:0;left:50%;height:10px;border-left:1px solid #9aa3b2}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li{flex:1 0 auto;max-width:300px;margin:0;padding:10px 4px 0}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li::before{left:0;right:0;top:0;width:auto}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li:first-child::before{left:50%}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li:last-child::before{right:50%}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li::after{content:"";position:absolute;top:0;left:50%;height:10px;border-left:1px solid #9aa3b2}
+:is(.mk-org>ul>li,.mk-org li.mk-row)>ul>li>.mk-n{max-width:none}
+.mk-tree.mk-org li.mk-collapsed>ul{display:none}
+.mk-tree-bar{font-size:12px;margin:4px 0 8px}
+.mk-tree-bar button{font:inherit;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:5px;padding:2px 8px;cursor:pointer;margin-right:4px}
+/* navigation and filters: only on pages whose content has section[id][data-nav] or [data-item] (see SKILL.md) */
+#mk-nav,#mk-filt{flex-basis:100%;display:flex;gap:4px 14px;align-items:center;font-size:13px}
+#mk-nav{overflow-x:auto;white-space:nowrap}
+#mk-nav a{color:var(--accent);text-decoration:none}
+#mk-filt{flex-wrap:wrap}
+#mk-filt label{display:inline-flex;gap:3px;align-items:center;cursor:pointer}
+#mk-filt select,#mk-filt input[type=search]{font:inherit;padding:2px 6px;border:1px solid var(--line);border-radius:5px}
+#mk-filt input[type=search]{min-width:18ch}
+#mk-filt .n{color:var(--muted)}
+body.mk-bars-closed #mk-nav,body.mk-bars-closed #mk-filt{display:none}
+.mk-filtered{display:none!important}
+.mk-grp{display:inline-block;font-size:11px;font-weight:600;padding:0 7px;margin:2px 0 0 6px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#fff;cursor:pointer;vertical-align:1px;white-space:nowrap}
+.mk-top{float:right;font-size:12px;font-weight:400;color:var(--accent);cursor:pointer;user-select:none}
+#mk-totop{position:fixed;right:16px;bottom:16px;z-index:30;padding:7px 13px;border:none;border-radius:999px;background:var(--ink);color:#fff;font:inherit;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);display:none}
+#mk-totop.show{display:block}
+/* edits with who made them: one colour per person (--ec), marks drawn at load and stripped on save */
+ins.mk-ins{text-decoration:underline 2px var(--ec);text-underline-offset:3px;background:color-mix(in srgb,var(--ec) 10%,transparent);cursor:pointer}
+del.mk-del{text-decoration:line-through 2px var(--ec);color:var(--ec);cursor:pointer;margin-right:.2em}
+ins.mk-ins.on,del.mk-del.on{outline:2px solid var(--ec);outline-offset:1px}
+#mk-tabs{display:flex;gap:6px;margin:0 0 8px}
+#mk-tabs button{font:inherit;font-size:13px;font-weight:600;padding:3px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer}
+#mk-tabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.mk-card.k-edit{border-left-color:var(--ec)}
+.mk-card .old{color:#b3261e;text-decoration:line-through;margin:2px 0}
+.mk-card .new{color:#1e6b34;margin:2px 0}
+.mk-card .old,.mk-card .new{max-height:6em;overflow:hidden;white-space:pre-wrap}
+.mk-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ec)}
+.mk-note{font-size:13px;color:var(--muted);margin:0 0 8px}
+@media (max-width:860px){#mk-wrap{grid-template-columns:1fr}#mk-side{position:static;max-height:none}#doc{padding:18px}}
+@media print{#mk-bar,#mk-side,#mk-totop,.mk-top{display:none}#mk-wrap{display:block}}
+</style>
+<style data-kit="base">/* Mockup kit, base parts. Every rule lives under a k- class; variables sit on the kit's own classes. */
+.k-win, .k-phone, .k-pane, .k-menu, .k-row, .k-col, .k-cmp, .k-list, .k-opt, .k-kpi, .k-tbl, .k-field, .k-note, .k-tag, .k-chip, .k-tick, .k-tickbox, .k-box, .k-btn, .k-bar {
+  --k-accent: #1f5fbf; --k-bg: #fff; --k-line: #d8dbe0; --k-ink: #1d2129; --k-muted: #6b7280; --k-soft: #f4f5f7;
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--k-ink);
+}
+.k-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin: 12px 0; }
+.k-note { color: var(--k-muted); font-size: 13px; margin: 8px 0; }
+.k-opt { background: var(--k-bg); border: 1px solid var(--k-line); border-radius: 8px; padding: 12px 14px; flex: 1 1 240px; }
+.k-opt.k-rec { border-color: var(--k-accent); box-shadow: 0 0 0 1px var(--k-accent); }
+.k-opt-h { display: flex; gap: 6px; margin-bottom: 6px; }
+.k-opt-t { font-weight: 600; margin-bottom: 6px; }
+.k-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; background: var(--k-soft); color: var(--k-muted); border: 1px solid var(--k-line); }
+.k-tag-rec { background: var(--k-accent); border-color: var(--k-accent); color: #fff; }
+.k-cmp, .k-tbl, #doc .k-cmp, #doc .k-tbl { border-collapse: collapse; background: var(--k-bg); margin: 0; }
+.k-cmp th, .k-cmp td, .k-tbl th, .k-tbl td, #doc .k-cmp th, #doc .k-cmp td, #doc .k-tbl th, #doc .k-tbl td { border: 1px solid var(--k-line); padding: 6px 10px; text-align: right; vertical-align: top; }
+.k-cmp th, .k-cmp td, .k-tbl th.k-l, .k-tbl td.k-l, #doc .k-cmp th, #doc .k-cmp td, #doc .k-tbl th.k-l, #doc .k-tbl td.k-l { text-align: left; }
+.k-tbl th, #doc .k-tbl th { background: var(--k-soft); font-weight: 600; font-size: 12px; color: var(--k-muted); }
+.k-tbl .k-tot td, #doc .k-tbl .k-tot td { font-weight: 600; background: var(--k-soft); }
+.k-win { background: var(--k-bg); border: 1px solid var(--k-line); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); max-width: 100%; }
+.k-win-bar { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--k-soft); border-bottom: 1px solid var(--k-line); font-size: 12px; font-weight: 600; color: var(--k-muted); }
+.k-dots { display: inline-flex; gap: 5px; }
+.k-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--k-line); display: block; }
+.k-win-body { padding: 12px; }
+.k-phone { width: 300px; min-height: 120px; background: var(--k-bg); border: 8px solid var(--k-ink); border-radius: 28px; padding: 14px 12px; box-sizing: border-box; }
+.k-pane { background: var(--k-bg); border: 1px solid var(--k-line); border-radius: 6px; min-width: 200px; }
+.k-pane-h { padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--k-muted); background: var(--k-soft); border-bottom: 1px solid var(--k-line); }
+.k-pane-b { padding: 10px; }
+.k-menu, .k-list { background: var(--k-bg); border: 1px solid var(--k-line); border-radius: 6px; padding: 4px; display: inline-block; min-width: 160px; }
+.k-list { display: block; }
+.k-menu > div, .k-list > div { padding: 5px 10px; border-radius: 4px; }
+.k-menu > .k-on, .k-list > .k-on { background: var(--k-accent); color: #fff; }
+.k-field { display: block; margin: 8px 0; }
+.k-field > span { display: block; font-size: 12px; color: var(--k-muted); margin-bottom: 3px; }
+.k-box { border: 1px solid var(--k-line); border-radius: 5px; padding: 6px 9px; min-height: 18px; background: var(--k-bg); }
+.k-sel::after { content: "▾"; float: right; color: var(--k-muted); }
+.k-btn { display: inline-block; padding: 6px 14px; border-radius: 5px; background: var(--k-accent); color: #fff; font-weight: 600; font-size: 13px; border: 1px solid var(--k-accent); }
+.k-btn.k-ghost { background: transparent; color: var(--k-accent); }
+.k-on .k-btn { background: #fff; color: var(--k-accent); }
+.k-col { display: flex; flex-direction: column; gap: 8px; }
+.k-chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid #c9ccd2; background: #f4f5f7; color: #4b5563; }
+.k-chip.k-g { background: #e3f4e8; border-color: #9fd3ae; color: #166534; }
+.k-chip.k-y { background: #fdf3d6; border-color: #e6c866; color: #854d0e; }
+.k-chip.k-r { background: #fde4e4; border-color: #eba3a3; color: #991b1b; }
+.k-tick { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+.k-tickbox { width: 14px; height: 14px; border: 1px solid var(--k-line); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; background: var(--k-bg); color: var(--k-accent); }
+.k-kpi { background: var(--k-bg); border: 1px solid var(--k-line); border-radius: 8px; padding: 10px 14px; min-width: 130px; }
+.k-kpi-l { font-size: 12px; color: var(--k-muted); }
+.k-kpi-b { font-size: 26px; font-weight: 700; line-height: 1.2; }
+.k-kpi-s { font-size: 12px; color: var(--k-muted); }
+.k-kpi-x { margin-top: 6px; }
+.k-bar { display: inline-block; height: 10px; border-radius: 2px; background: var(--k-accent); vertical-align: middle; }
+</style>
+</head>
+<body>
+<div id="mk-wrap">
+<main id="doc">
+<style>
+.fs-panel{width:560px;border:1px solid #d0d0d6;border-radius:14px;background:#f6f6f8;font:13px -apple-system,system-ui,sans-serif;color:#1d1d1f;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.12);position:relative}
+.fs-top{display:flex;align-items:center;gap:8px;padding:12px 14px;font-size:16px}
+.fs-q{flex:1}.fs-q.ph{color:#9a9aa0}
+.fs-chip{font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.07)}
+.fs-chip.on{background:#0a66d8;color:#fff}
+.fs-dd{font-size:12px;padding:3px 8px;border:1px solid #c9c9cf;border-radius:6px;background:#fff;white-space:nowrap}
+.fs-dd.on{border-color:#0a66d8;color:#0a66d8}
+.fs-tabs{display:flex;gap:4px;padding:0 12px 8px;font-size:12px}
+.fs-tab{padding:3px 10px;border-radius:6px;color:#55555a}.fs-tab.on{background:#0a66d8;color:#fff}
+.fs-hr{border-top:1px solid #e0e0e4}
+.fs-sec{font-size:11px;color:#86868b;padding:8px 14px 2px}
+.fs-row{display:flex;gap:8px;align-items:center;padding:5px 14px}
+.fs-row.sel{background:#0a66d8;color:#fff;border-radius:6px;margin:0 6px;padding:5px 8px}
+.fs-row .dir{color:#86868b;font-size:12px}.fs-row.sel .dir{color:#d6e6ff}
+.fs-row .k{margin-left:auto;font-size:11px;color:#86868b}.fs-row.sel .k{color:#d6e6ff}
+.fs-foot{display:flex;gap:12px;padding:7px 12px;font-size:11px;color:#86868b}
+.fs-foot span:first-child{margin-right:auto}
+.fs-pop{position:absolute;right:12px;top:44px;width:190px;background:#fff;border:1px solid #d0d0d6;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;font-size:12px;z-index:2}
+.fs-pop div{padding:4px 8px;border-radius:5px;display:flex;justify-content:space-between}
+.fs-pop div.on{background:#0a66d8;color:#fff}.fs-pop div i{color:#86868b;font-style:normal}.fs-pop div.on i{color:#d6e6ff}
+.fs-pop.left{left:60px;right:auto;top:44px}
+</style>
+<section id="a" data-nav="A. Type dropdown in the search bar (recommended)"><h2>A. Type dropdown in the search bar (recommended)</h2><p class="k-note">A dropdown sits at the right of the search field, the way Raycast's file search does it. ⌘P opens it, ↑/↓ and ↵ pick. ⌘1 to ⌘4 jump straight to the common ones. When a type is picked, the dropdown turns blue and the results narrow. Backspace in an empty field does not clear it; ⌘0 or picking All types does.</p><div class="k-row"><div class="k-col"><b>1. Closed, nothing picked</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice</span><span class="fs-dd">All types ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📄</span><span>invoice-2026-10.pdf</span><span class="dir">~/Documents/Taxes</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>🖼</span><span>invoice-scan.jpg</span><span class="dir">~/Downloads</span><span class="k"></span></div><div class="fs-row"><span>📄</span><span>invoice-template.docx</span><span class="dir">~/Documents/Templates</span><span class="k"></span></div><div class="fs-sec">Use “invoice” with…</div><div class="fs-row"><span>📝</span><span>Search inside files</span><span class="dir"></span><span class="k"></span></div><div class="fs-row"><span>ƒ</span><span>Find definitions</span><span class="dir"></span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div><div class="k-col"><b>2. Open with ⌘P</b><div class="fs-panel"><div class="fs-pop "><div class="">All types<i>⌘0</i></div><div class="on">Folders<i>⌘1</i></div><div class="">Documents<i>⌘2</i></div><div class="">Images<i>⌘3</i></div><div class="">Code<i>⌘4</i></div><div class="">Video<i></i></div><div class="">Audio<i></i></div><div class="">Archives<i></i></div><div class="">Fonts<i></i></div><div class="">Apps<i></i></div></div><div class="fs-top">🔍 <span class="fs-q">invoice</span><span class="fs-dd on">All types ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📄</span><span>invoice-2026-10.pdf</span><span class="dir">~/Documents/Taxes</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>🖼</span><span>invoice-scan.jpg</span><span class="dir">~/Downloads</span><span class="k"></span></div><div class="fs-row"><span>📄</span><span>invoice-template.docx</span><span class="dir">~/Documents/Templates</span><span class="k"></span></div><div class="fs-sec">Use “invoice” with…</div><div class="fs-row"><span>📝</span><span>Search inside files</span><span class="dir"></span><span class="k"></span></div><div class="fs-row"><span>ƒ</span><span>Find definitions</span><span class="dir"></span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div></div><div class="k-row"><div class="k-col"><b>3. Folders picked</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice</span><span class="fs-dd on">📁 Folders ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Folders</div><div class="fs-row sel"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>invoices-archive</span><span class="dir">~/Documents/Old</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoice Exports</span><span class="dir">~/Library/Mobile Documents</span><span class="k"></span></div><div class="fs-sec">Use “invoice” with…</div><div class="fs-row"><span>📝</span><span>Search inside files</span><span class="dir"></span><span class="k"></span></div><div class="fs-row"><span>ƒ</span><span>Find definitions</span><span class="dir"></span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div><div class="k-col"><b>4. Folders picked, empty query: recent folders only</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q ph">Search folders</span><span class="fs-dd on">📁 Folders ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Recent</div><div class="fs-row sel"><span>📁</span><span>fsearch-app</span><span class="dir">~/projects</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Taxes</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Downloads</span><span class="dir">~</span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div></div></section>
+<section id="b" data-nav="B. Suggestion rows and completion"><h2>B. Suggestion rows and completion</h2><p class="k-note">No new control. The "Use … with…" section gets type rows next to the two that exist today. Picking one adds the matching text (kind:dir, type:image) to the query, so you learn the syntax as you go. Typing type: or kind: pops up the allowed values.</p><div class="k-row"><div class="k-col"><b>1. Type rows under the results</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📄</span><span>invoice-2026-10.pdf</span><span class="dir">~/Documents/Taxes</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-sec">Use “invoice” with…</div><div class="fs-row"><span>📝</span><span>Search inside files</span><span class="dir"></span><span class="k"></span></div><div class="fs-row"><span>ƒ</span><span>Find definitions</span><span class="dir"></span><span class="k"></span></div><div class="fs-row sel"><span>📁</span><span>Only folders</span><span class="dir"></span><span class="k">kind:dir</span></div><div class="fs-row"><span>📄</span><span>Only documents</span><span class="dir"></span><span class="k">type:doc</span></div><div class="fs-row"><span>🖼</span><span>Only images</span><span class="dir"></span><span class="k">type:image</span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div><div class="k-col"><b>2. Picked: the filter is written into the query</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice kind:dir</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>invoices-archive</span><span class="dir">~/Documents/Old</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoice Exports</span><span class="dir">~/Library/Mobile Documents</span><span class="k"></span></div><div class="fs-sec">Use “invoice kind:dir” with…</div><div class="fs-row"><span>📝</span><span>Search inside files</span><span class="dir"></span><span class="k"></span></div><div class="fs-row"><span>ƒ</span><span>Find definitions</span><span class="dir"></span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div></div><div class="k-row"><div class="k-col"><b>3. Typing type: shows the values</b><div class="fs-panel"><div class="fs-pop left"><div class="">code</div><div class="on">doc</div><div class="">image</div><div class="">video</div><div class="">audio</div><div class="">archive</div><div class="">font</div><div class="">app</div></div><div class="fs-top">🔍 <span class="fs-q">invoice type:</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📄</span><span>invoice-2026-10.pdf</span><span class="dir">~/Documents/Taxes</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>🖼</span><span>invoice-scan.jpg</span><span class="dir">~/Downloads</span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div></div></section>
+<section id="c" data-nav="C. Tabs above the results"><h2>C. Tabs above the results</h2><p class="k-note">A row of tabs under the search field. ⌃Tab or ⌘1 to ⌘5 move between them; More ▾ holds Video, Audio, Archives, Fonts and Apps. Costs one row of height in a panel that is a fixed 460 points tall.</p><div class="k-row"><div class="k-col"><b>1. All</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice</span></div><div class="fs-tabs"><span class="fs-tab on">All</span><span class="fs-tab">Folders</span><span class="fs-tab">Documents</span><span class="fs-tab">Images</span><span class="fs-tab">Code</span><span class="fs-tab">More ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Files</div><div class="fs-row sel"><span>📄</span><span>invoice-2026-10.pdf</span><span class="dir">~/Documents/Taxes</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>🖼</span><span>invoice-scan.jpg</span><span class="dir">~/Downloads</span><span class="k"></span></div><div class="fs-row"><span>📄</span><span>invoice-template.docx</span><span class="dir">~/Documents/Templates</span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div><div class="k-col"><b>2. Folders</b><div class="fs-panel"><div class="fs-top">🔍 <span class="fs-q">invoice</span></div><div class="fs-tabs"><span class="fs-tab">All</span><span class="fs-tab on">Folders</span><span class="fs-tab">Documents</span><span class="fs-tab">Images</span><span class="fs-tab">Code</span><span class="fs-tab">More ▾</span></div><div class="fs-hr"></div><div class="fs-sec">Folders</div><div class="fs-row sel"><span>📁</span><span>Invoices</span><span class="dir">~/Documents</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>invoices-archive</span><span class="dir">~/Documents/Old</span><span class="k"></span></div><div class="fs-row"><span>📁</span><span>Invoice Exports</span><span class="dir">~/Library/Mobile Documents</span><span class="k"></span></div><div class="fs-hr"></div><div class="fs-foot"><span>⚙</span><span>Open ↵</span><span>Reveal in Finder ⌘↵</span><span>Actions ⌘K</span></div></div></div></div></section>
+<section id="cmp" data-nav="Side by side"><h2>Side by side</h2><table class="k-cmp"><tr><th></th><th>A. Dropdown</th><th>B. Suggestion rows</th><th>C. Tabs</th></tr><tr><td>Can you see the filter is on?</td><td>Yes, blue dropdown</td><td>Only as text in the query</td><td>Yes, highlighted tab</td></tr><tr><td>Works with an empty query</td><td>Yes, filters recents</td><td>No, rows need a query</td><td>Yes</td></tr><tr><td>Teaches the typed syntax</td><td>No</td><td>Yes</td><td>No</td></tr><tr><td>Panel space used</td><td>None</td><td>A few rows</td><td>One row</td></tr><tr><td>Work to build</td><td>Most: new key handling and tests</td><td>Least</td><td>Middle</td></tr><tr><td>Fits the planned big window later</td><td>Yes, same control</td><td>Partly</td><td>Yes</td></tr></table><div class="k-opt k-rec"><div class="k-opt-h"><span class="k-tag">A</span><span class="k-tag k-tag-rec">Recommended</span></div><div class="k-opt-t">Dropdown in the search bar</div>It shows the filter clearly, costs no space and works before you type. It's the most work, mostly in the panel's keyboard handling.</div><p class="k-note">Open questions for any option: if you pick Folders and also type type:image, which wins? (My call: the typed one, and the dropdown shows Custom.) Should the choice stick when you reopen the panel later? (My call: only within the 60-second resume window, like the query.)</p></section>
+</main>
+</div>
+<script type="application/json" id="mk-annotations">{"version":1,"comments":[]}</script>
+<script type="application/json" id="mk-edits">{"version":1,"revs":[]}</script>
+<script id="mk-engine">
+(() => {
+  "use strict";
+  const doc = document.getElementById("doc");
+  const annEl = document.getElementById("mk-annotations");
+  let data; try { data = JSON.parse(annEl.textContent); } catch { data = { version: 1, comments: [] }; }
+  data.comments = data.comments || [];
+  const served = location.protocol.startsWith("http");
+  const now = () => new Date().toISOString();
+  const newId = () => "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  let author = localStorage.getItem("mk-author") || "Brian";
+  let dirty = false, saving = false, timer = null, boxMode = false, pickedImg = null;
+
+  // ---------- UI (built at load, never saved: everything with data-mk-ui is stripped on save)
+  const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === "on") for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k in e && k !== "list") e[k] = v; else e.setAttribute(k, v); } for (const k of kids) e.append(k); return e; };
+  const btn = (label, title, fn, pressed) => { const b = el("button", { type: "button", title, on: { mousedown: (e) => e.preventDefault(), click: fn } }, label); if (pressed !== undefined) b.setAttribute("aria-pressed", String(pressed)); return b; };
+  const status = el("span", { id: "mk-status" }, served ? "Ready" : "Opened as a file: Save downloads a copy");
+  const editBtn = btn("Edit", "Turn editing on or off", () => setEdit(doc.contentEditable !== "true"), true);
+  const boxBtn = btn("▭ Box", "Draw a box over an area, then comment on it", () => setBox(!boxMode), false);
+  const paneBtn = btn("◨ Pane", "Show or hide the comments pane on the right, for more room", () => setPane(document.body.classList.contains("mk-pane-closed")), true);
+  const hideBtn = btn("Hide comments", "Hide highlights, boxes and the comment list", () => { const on = document.body.classList.toggle("mk-hide"); hideBtn.setAttribute("aria-pressed", String(on)); }, false);
+  const editsBtn = btn("± Edits", "Show or hide who added and removed what, in the text", () => setShowEdits(!showEdits), true);
+  const who = el("label", { className: "who" }, "You: ", el("input", { value: author, on: { change: (e) => { author = e.target.value.trim() || "Brian"; localStorage.setItem("mk-author", author); } } }));
+  const bar = el("header", { id: "mk-bar", "data-mk-ui": "1" },
+    el("span", { className: "t" }, document.title), editBtn,
+    btn("B", "Bold (⌘B)", () => document.execCommand("bold")), btn("I", "Italic (⌘I)", () => document.execCommand("italic")),
+    btn("• List", "Bulleted list", () => document.execCommand("insertUnorderedList")), btn("H", "Make this line a heading", () => document.execCommand("formatBlock", false, "h3")),
+    el("span", { className: "sep" }), btn("💬 Comment", "Comment on the selected text, or on the image you clicked (⌘⇧M)", () => addFromSelection()), boxBtn, paneBtn, hideBtn, editsBtn,
+    el("span", { className: "sep" }), who, btn("Save", "Save now (⌘S)", () => save(true)), status);
+  const side = el("aside", { id: "mk-side", "data-mk-ui": "1" });
+  const tabs = el("div", { id: "mk-tabs" }), pane = el("div");
+  side.append(tabs, pane);
+  let tab = "comments";
+  document.body.prepend(bar);
+  document.getElementById("mk-wrap").append(side);
+
+  function setEdit(on) { doc.contentEditable = on ? "true" : "false"; editBtn.setAttribute("aria-pressed", String(on)); doc.querySelectorAll(".mk-box").forEach((b) => (b.contentEditable = "false")); }
+  function setPane(open) { document.body.classList.toggle("mk-pane-closed", !open); paneBtn.setAttribute("aria-pressed", String(open)); localStorage.setItem("mk-pane:" + location.pathname, open ? "1" : "0"); }
+  function setBox(on) { boxMode = on; document.body.classList.toggle("mk-boxmode", on); boxBtn.setAttribute("aria-pressed", String(on)); }
+
+  // ---------- comments
+  const find = (id) => data.comments.find((c) => c.id === id);
+  const anchors = (id) => doc.querySelectorAll(`[data-c~="${id}"]`);
+  function create(kind, quote) {
+    const c = { id: newId(), kind, to: "Agent", author, text: "", quote: quote || "", created: now(), updated: now(), resolved: false, replies: [] };
+    data.comments.push(c); return c;
+  }
+  function wrapRange(range, id) {
+    const root = range.commonAncestorContainer.nodeType === 3 ? range.commonAncestorContainer.parentNode : range.commonAncestorContainer;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (range.intersectsNode(n) && n.nodeValue.trim() ? 1 : 2) });
+    const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+    for (const n of nodes) {
+      let s = 0, e = n.nodeValue.length;
+      if (n === range.startContainer) s = range.startOffset;
+      if (n === range.endContainer) e = range.endOffset;
+      if (s >= e) continue;
+      if (e < n.nodeValue.length) n.splitText(e);
+      const t = s > 0 ? n.splitText(s) : n;
+      const m = document.createElement("mark"); m.className = "mk-c"; m.dataset.c = id;
+      t.parentNode.insertBefore(m, t); m.appendChild(t);
+    }
+  }
+  function addFromSelection() {
+    const sel = getSelection();
+    if (sel.rangeCount && !sel.isCollapsed && doc.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      const r = sel.getRangeAt(0); const c = create("text", sel.toString().trim().slice(0, 500));
+      wrapRange(r, c.id); sel.removeAllRanges(); changed(); render(c.id, true); return;
+    }
+    if (pickedImg) {
+      const c = create("image", pickedImg.getAttribute("alt") || pickedImg.getAttribute("src")?.split("/").pop() || "image");
+      pickedImg.dataset.c = ((pickedImg.dataset.c || "") + " " + c.id).trim(); pickedImg.classList.add("mk-img-c"); pickedImg.classList.remove("mk-picked"); pickedImg = null;
+      changed(); render(c.id, true); return;
+    }
+    flash("Select some text or click an image first, or use ▭ Box to mark an area.", true);
+  }
+  function removeComment(id) {
+    for (const a of anchors(id)) {
+      if (a.matches("mark.mk-c")) { const ids = a.dataset.c.split(" ").filter((x) => x !== id); if (ids.length) a.dataset.c = ids.join(" "); else a.replaceWith(...a.childNodes); }
+      else if (a.classList.contains("mk-box")) a.remove();
+      else { const ids = a.dataset.c.split(" ").filter((x) => x !== id); if (ids.length) a.dataset.c = ids.join(" "); else { a.removeAttribute("data-c"); a.classList.remove("mk-img-c"); } }
+    }
+    data.comments = data.comments.filter((c) => c.id !== id); doc.normalize(); changed(); render();
+  }
+  function focusComment(id, scroll) {
+    doc.querySelectorAll(".on").forEach((x) => x.classList.remove("on")); side.querySelectorAll(".mk-card.on").forEach((x) => x.classList.remove("on"));
+    const a = anchors(id); a.forEach((x) => x.classList.add("on"));
+    const card = side.querySelector(`[data-card="${id}"]`); if (card) { card.classList.add("on"); card.scrollIntoView({ block: "nearest" }); }
+    if (scroll && a[0]) a[0].scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+  function goToComment(id) { const a = anchors(id); if (a[0]) { reveal(a[0]); focusComment(id, true); } }
+  function render(focusId, focusText) {
+    if (focusId) tab = "comments";
+    const tabBtn = (name, label) => el("button", { type: "button", "aria-pressed": String(tab === name), on: { click: () => { tab = name; if (name === "edits" && editsStale) paint(); render(); } } }, label);
+    tabs.replaceChildren(tabBtn("comments", `Comments (${data.comments.filter((c) => !c.resolved).length} open)`), tabBtn("edits", `Edits (${items.length})`));
+    if (tab === "edits") return renderEdits();
+    pane.replaceChildren();
+    const order = [...doc.querySelectorAll("[data-c]")].flatMap((a) => a.dataset.c.split(" "));
+    const sorted = [...data.comments].sort((a, b) => { const i = order.indexOf(a.id), j = order.indexOf(b.id); return (i < 0 ? 1e9 : i) - (j < 0 ? 1e9 : j); });
+    for (const c of sorted) {
+      const touch = () => { c.updated = now(); changed(); };
+      const ta = el("textarea", { value: c.text, placeholder: "Your comment…", on: { input: (e) => { c.text = e.target.value; touch(); } } });
+      const kids = [
+        el("div", { className: "row" }, `${c.author} · ${c.kind === "area" ? "area" : c.kind} · to `,
+          el("input", { type: "text", value: c.to, list: "mk-to", title: "Who this is for: Agent, or a person", on: { input: (e) => { c.to = e.target.value; touch(); } } }),
+          el("label", {}, el("input", { type: "checkbox", checked: c.resolved, on: { change: (e) => { c.resolved = e.target.checked; touch(); render(c.id); } } }), " done")),
+      ];
+      if (c.quote) kids.push(el("div", { className: "q" }, "“" + c.quote + "”"));
+      kids.push(ta);
+      for (const r of c.replies || []) kids.push(el("div", { className: "rep" }, el("b", {}, r.author + ": "), r.text || (r.aid ? "marked this done" : "")));
+      if (served && isForAgent(c) && !c.resolved) {
+        const st = sendState(c);
+        kids.push(el("div", { className: "send" }, el("button", { type: "button", on: { click: () => send(c) } }, st.label), st.note || ""));
+      }
+      kids.push(el("div", { className: "act" },
+        el("input", { type: "text", placeholder: "Reply, then Enter", style: "flex:1;width:auto", on: { keydown: (e) => { if (e.key === "Enter" && e.target.value.trim()) { c.replies.push({ author, text: e.target.value.trim(), created: now() }); touch(); render(c.id); } } } }),
+        el("button", { type: "button", disabled: !anchors(c.id).length, title: anchors(c.id).length ? "Show this comment's place in the page" : "The marked text is no longer in the page", on: { click: () => goToComment(c.id) } }, `↗ Jump to ${c.kind}`),
+        el("button", { type: "button", on: { click: () => { if (confirm("Delete this comment?")) removeComment(c.id); } } }, "Delete")));
+      const card = el("div", { className: `mk-card k-${c.kind}${c.resolved ? " done" : ""}`, "data-card": c.id, on: { click: (e) => { if (e.target === e.currentTarget || e.target.classList.contains("q")) focusComment(c.id, true); } } }, ...kids);
+      pane.append(card);
+      if (c.id === focusId && focusText) { setPane(true); setTimeout(() => ta.focus(), 0); }
+    }
+    const dl = el("datalist", { id: "mk-to" }); new Set(["Agent", "Claude", "Codex", "Kimi", ...data.comments.map((c) => c.to)]).forEach((v) => v && dl.append(el("option", { value: v }))); pane.append(dl);
+    if (focusId) focusComment(focusId);
+  }
+
+  // ---------- boxes (area comments): positioned in px relative to #doc
+  let drawing = null;
+  doc.addEventListener("mousedown", (e) => {
+    if (!boxMode || e.button !== 0) return; e.preventDefault();
+    const r = doc.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top;
+    drawing = { x, y, el: el("div", { className: "mk-draw", "data-mk-ui": "1" }) }; drawing.el.style.cssText = `left:${x}px;top:${y}px;width:0;height:0`; doc.append(drawing.el);
+  });
+  addEventListener("mousemove", (e) => {
+    if (!drawing) return; const r = doc.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top;
+    Object.assign(drawing.el.style, { left: Math.min(x, drawing.x) + "px", top: Math.min(y, drawing.y) + "px", width: Math.abs(x - drawing.x) + "px", height: Math.abs(y - drawing.y) + "px" });
+  });
+  addEventListener("mouseup", () => {
+    if (!drawing) return; const d = drawing; drawing = null; const s = d.el.style; d.el.remove();
+    if (parseFloat(s.width) < 8 || parseFloat(s.height) < 8) return;
+    const box = el("div", { className: "mk-box", contentEditable: "false" }); box.style.cssText = `left:${s.left};top:${s.top};width:${s.width};height:${s.height}`;
+    const near = nearText(box, d); const c = create("area", near); box.dataset.c = c.id; doc.append(box);
+    setBox(false); changed(); render(c.id, true);
+  });
+  function nearText(box, d) { // text under the box, so a reader knows what it covers
+    const r = doc.getBoundingClientRect(); const pts = [[0.5, 0.5], [0.1, 0.1], [0.9, 0.9]];
+    const w = parseFloat(box.style.width), h = parseFloat(box.style.height), l = parseFloat(box.style.left), t = parseFloat(box.style.top);
+    for (const [fx, fy] of pts) { const hit = document.elementFromPoint(r.left + l + w * fx, r.top + t + h * fy); if (hit && doc.contains(hit) && hit !== doc) return (hit.tagName === "IMG" ? "[image " + (hit.alt || hit.src.split("/").pop()) + "] " : "") + (hit.innerText || "").trim().slice(0, 200); }
+    return "";
+  }
+
+  // ---------- clicks: images get picked; marks, images and boxes focus their comment
+  doc.addEventListener("click", (e) => {
+    if (boxMode) return;
+    const a = e.target.closest("[data-c]");
+    if (e.target.tagName === "IMG") { doc.querySelectorAll("img.mk-picked").forEach((i) => i.classList.remove("mk-picked")); pickedImg = e.target; if (!a) { pickedImg.classList.add("mk-picked"); flash("Image selected. Click 💬 Comment to comment on it."); } }
+    else pickedImg && (pickedImg.classList.remove("mk-picked"), (pickedImg = null));
+    if (a) focusComment(a.dataset.c.split(" ")[0]);
+  });
+
+  // ---------- org-chart trees: any .mk-tree holding nested <ul> becomes expand/collapse. UI parts are data-mk-ui (never saved).
+  function initTrees() {
+    doc.querySelectorAll(".mk-tree").forEach((tree) => {
+      const open = Number(tree.dataset.open || 2);
+      const lis = [...tree.querySelectorAll("li")];
+      tree.prepend(el("div", { className: "mk-tree-bar", "data-mk-ui": "1", contentEditable: "false" },
+        el("button", { type: "button", on: { click: () => lis.forEach((li) => li.classList.remove("mk-collapsed")) } }, "Expand all"),
+        el("button", { type: "button", on: { click: () => lis.forEach((li) => li.querySelector(":scope>ul") && li.classList.add("mk-collapsed")) } }, "Collapse all")));
+      const org = tree.classList.contains("mk-org"); // top-down chart: the count and toggle sit inside each box
+      for (const li of lis) {
+        const kids = li.querySelector(":scope>ul"), node = li.querySelector(":scope>.mk-n"), inBox = org && node;
+        let depth = 0; for (let p = li.parentElement; p && p !== tree; p = p.parentElement) if (p.tagName === "LI") depth++;
+        const toggle = () => li.classList.toggle("mk-collapsed");
+        const tg = el("span", { className: "mk-tg" + (kids ? "" : " leaf"), "data-mk-ui": "1", contentEditable: "false", title: "Expand or collapse", on: { click: toggle } });
+        if (!inBox) li.prepend(tg); else if (kids) node.append(tg);
+        const badge = (text, click) => { const ct = el("span", { className: "mk-ct", "data-mk-ui": "1", contentEditable: "false", ...(click ? { title: "Expand or collapse", on: { click } } : {}) }, `(${text})`); if (inBox) node.insertBefore(ct, kids ? tg : null); else (node || li.firstChild).after(ct); };
+        if (!kids) { if (li.dataset.count && node) badge(li.dataset.count); continue; }
+        // data-count wins (a headcount, or text like "8 direct"); data-count="" hides the badge; else count the leaves.
+        const n = li.hasAttribute("data-count") ? li.dataset.count : [...kids.querySelectorAll("li")].filter((x) => !x.querySelector("ul")).length;
+        if (n !== "") badge(n, toggle);
+        if (depth >= open) li.classList.add("mk-collapsed");
+      }
+    });
+  }
+
+  // ---------- navigation and filters (opt-in): section[id][data-nav] gives jump links and "↑ Top"; [data-item] (optional data-sev, and data-group="A|B") gives filters.
+  // Everything added is data-mk-ui, and .mk-filtered is stripped on save, so filtering never changes the file.
+  let clearFilters = () => {};
+  const toTop = () => scrollTo({ top: 0, behavior: "smooth" });
+  function reveal(t) { if (t.closest(".mk-filtered")) clearFilters(); for (let d = t.closest("details:not([open])"); d; d = d.parentElement.closest("details:not([open])")) d.open = true; }
+  function jump(t) { reveal(t); t.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  function initNav() {
+    const secs = [...doc.querySelectorAll("section[id][data-nav]")], items = [...doc.querySelectorAll("[data-item]")];
+    if (!secs.length && !items.length) return;
+    const ui = (tag, attrs, ...k) => el(tag, { "data-mk-ui": "1", ...attrs }, ...k);
+    const pad = () => (document.documentElement.style.scrollPaddingTop = bar.offsetHeight + 8 + "px");
+    const totop = ui("button", { id: "mk-totop", type: "button", title: "Back to the top", on: { click: toTop } }, "↑ Top");
+    document.body.append(totop);
+    const barsBtn = btn(items.length ? "▤ Filters" : "▤ Links", "Show or hide the navigation and filter rows, for more room", () => setBars(document.body.classList.contains("mk-bars-closed")), true);
+    paneBtn.after(barsBtn);
+    function setBars(open) { document.body.classList.toggle("mk-bars-closed", !open); barsBtn.setAttribute("aria-pressed", String(open)); localStorage.setItem("mk-bars:" + location.pathname, open ? "1" : "0"); pad(); }
+    addEventListener("scroll", () => totop.classList.toggle("show", scrollY > 400), { passive: true });
+    if (secs.length) {
+      const links = secs.map((s) => el("a", { href: "#" + s.id, on: { click: (e) => { e.preventDefault(); jump(s); } } }, s.dataset.nav));
+      if (doc.querySelector("details")) links.push(btn("Open all ▸", "Open or close every expandable part", (e) => { const open = e.currentTarget.textContent.startsWith("Open"); doc.querySelectorAll("details").forEach((d) => (d.open = open)); e.currentTarget.textContent = open ? "Close all ▾" : "Open all ▸"; }));
+      bar.append(ui("nav", { id: "mk-nav" }, ...links));
+      for (const s of secs) s.querySelector("h1,h2,h3")?.append(ui("span", { className: "mk-top", contentEditable: "false", title: "Back to the top", on: { click: toTop } }, "↑ Top"));
+    }
+    if (items.length) {
+      const sevs = [...new Set(items.map((i) => i.dataset.sev).filter(Boolean))];
+      const boxes = sevs.map((v) => el("input", { type: "checkbox", checked: true, value: v, on: { change: apply } }));
+      const sel = secs.length > 1 ? el("select", { title: "Show one section", on: { change: apply } }, el("option", { value: "" }, "All sections"), ...secs.filter((s) => s.querySelector("[data-item]")).map((s) => el("option", { value: s.id }, s.dataset.nav))) : null;
+      const grpOf = (i) => (i.dataset.group || "").split("|").map((g) => g.trim()).filter(Boolean);
+      const groups = [...new Set(items.flatMap(grpOf))];
+      const gsel = groups.length ? el("select", { title: "Show one group", on: { change: apply } }, el("option", { value: "" }, "All groups"), ...groups.map((g) => el("option", { value: g }, g))) : null;
+      for (const i of items) { const host = i.querySelector("h1,h2,h3,h4,h5,h6") || i.querySelector("td:last-child") || i; for (const g of grpOf(i)) host.append(ui("span", { className: "mk-grp", contentEditable: "false", title: "Show only this group", on: { click: () => { gsel.value = g; apply(); } } }, g)); }
+      const q = el("input", { type: "search", placeholder: "Search…", on: { input: apply } });
+      const n = el("span", { className: "n" });
+      clearFilters = () => { boxes.forEach((b) => (b.checked = true)); if (sel) sel.value = ""; if (gsel) gsel.value = ""; q.value = ""; apply(); };
+      bar.append(ui("div", { id: "mk-filt" }, ...(sevs.length ? ["Show:"] : []), ...boxes.map((b) => el("label", {}, b, b.value)), ...(sel ? [sel] : []), ...(gsel ? [gsel] : []), q, btn("Clear", "Clear the filters", () => clearFilters()), n));
+      function apply() {
+        const on = boxes.filter((b) => b.checked).map((b) => b.value), s = sel ? sel.value : "", g = gsel ? gsel.value : "", t = q.value.trim().toLowerCase();
+        const any = on.length < boxes.length || s || g || t; let shown = 0;
+        for (const i of items) {
+          const ok = (!i.dataset.sev || on.includes(i.dataset.sev)) && (!s || i.closest("section[data-nav]")?.id === s) && (!g || grpOf(i).includes(g)) && (!t || i.textContent.toLowerCase().includes(t));
+          i.classList.toggle("mk-filtered", !ok); shown += ok;
+        }
+        for (const x of secs) x.classList.toggle("mk-filtered", !!any && ((s && x.id !== s) || !x.querySelector("[data-item]:not(.mk-filtered)")));
+        n.textContent = any ? `Showing ${shown} of ${items.length}` : `${items.length} items`;
+        barsBtn.textContent = any ? "▤ Filters on" : "▤ Filters"; // filters keep working while the row is hidden
+      }
+      apply();
+    }
+    setBars(localStorage.getItem("mk-bars:" + location.pathname) !== "0"); addEventListener("resize", pad);
+  }
+  // Links inside the editable document: in-page links jump (clearing filters that hide the target); other links open in a new tab.
+  doc.addEventListener("click", (e) => {
+    const a = !boxMode && e.target.closest("a[href]"); if (!a) return;
+    const h = a.getAttribute("href");
+    if (h.startsWith("#")) { const t = document.getElementById(decodeURIComponent(h.slice(1))); if (t) { e.preventDefault(); jump(t); } }
+    else if (doc.contentEditable === "true") { e.preventDefault(); open(a.href, "_blank", "noopener"); }
+  });
+
+  // ---------- edits with who made them. The file keeps the text at the start (base) and the text after each person's
+  // editing session (revs); the marks and the Edits list are worked out from those, so the document itself stays clean.
+  // ---------- answers:core begin (no page code here: tests/markup-page/answers-core.test.ts runs this block)
+  // Send to agent on ordinary pages (2026-11-13). The agent answers into <page>.answers.json; the tab reads it through
+  // api/state every 5 s and copies each answer into its comment's replies, marked with the answer's id (aid).
+  function isForAgent(c) { const t = String(c.to ?? "").trim(); return !t || /^(agent|claude|codex|kimi)$/i.test(t); }
+  function foldAnswers(comments, answers) {
+    let changed = false;
+    for (const a of answers || []) {
+      const c = comments.find((x) => x.id === a.comment);
+      if (!c || (c.replies = c.replies || []).some((r) => r.aid === a.id)) continue;
+      c.replies.push({ author: a.by, text: a.text, created: a.at, aid: a.id });
+      if (a.done) c.resolved = true;
+      changed = true;
+    }
+    return changed;
+  }
+  function sendState(c) {
+    const hm = (t) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    if (!c.rung) return { label: "➤ Send to agent now", note: null };
+    const ans = (c.replies || []).filter((r) => r.aid && r.created > c.rung).pop();
+    return { label: "➤ Send again", note: ans ? "Answered " + hm(ans.created) : "Sent " + hm(c.rung) + ", waiting for the agent" };
+  }
+  // A poll sent before the tab's last save finished (or during one) may carry the old fingerprint: ignore it.
+  // Before the first poll the tab has no fingerprint, so it compares the file's time with the time it loaded.
+  function pollSaysChanged(poll, tab) {
+    if (tab.saving || poll.sentAt <= tab.lastSaveEnd) return false;
+    return tab.fp === null ? poll.version > tab.base : poll.fp !== tab.fp;
+  }
+  // Before a Send: wait out a save already running, else save once; stop at the first failure (no retry storm).
+  async function saveFirst(state, save, wait) {
+    for (let i = 0; i < 40; i++) {
+      const s = state(); if (!s.dirty && !s.saving) return true;
+      if (s.saving) await wait(250); else if (!(await save())) return false;
+    }
+    return false;
+  }
+  // Redrawing the comments pane would pull a text box out from under Brian's typing; anything else can redraw.
+  function typingIn(a) { return !!a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && /^(text|search)?$/i.test(a.type || ""))); }
+  // One ring per press: a second click while the first Send is still on its way does nothing.
+  async function sendOnce(busy, id, fn) {
+    if (busy.has(id)) return false;
+    busy.add(id);
+    try { await fn(); return true; } finally { busy.delete(id); }
+  }
+  // ---------- answers:core end
+
+  // ---------- edits:core begin (no page code here: tests/markup-page/edits-core.test.ts and read-markup.ts run this block)
+  const tokens = (s) => s.match(/\s+|[\p{L}\p{N}_'’-]+|[^\s\p{L}\p{N}]/gu) || [];
+  const keyOf = (t) => (/^\s+$/.test(t) ? " " : t); // a change in spacing alone is not an edit
+  // Equal tokens of a and b as [i, j] pairs, in order (Myers' diff). Past MAX_D changes the middle counts as replaced.
+  function lcsPairs(a, b, MAX_D = 3000) {
+    const A = a.map(keyOf), B = b.map(keyOf);
+    let s = 0; while (s < A.length && s < B.length && A[s] === B[s]) s++;
+    let ea = A.length, eb = B.length; while (ea > s && eb > s && A[ea - 1] === B[eb - 1]) { ea--; eb--; }
+    const pairs = []; for (let i = 0; i < s; i++) pairs.push([i, i]);
+    const N = ea - s, M = eb - s, mid = [];
+    if (N && M) {
+      const off = N + M + 1, v = new Int32Array(2 * off + 2), trace = []; let found = false;
+      for (let d = 0; d <= Math.min(N + M, MAX_D) && !found; d++) {
+        trace.push(v.slice(off - d - 1, off + d + 2));
+        for (let k = -d; k <= d; k += 2) {
+          let x = k === -d || (k !== d && v[off + k - 1] < v[off + k + 1]) ? v[off + k + 1] : v[off + k - 1] + 1, y = x - k;
+          while (x < N && y < M && A[s + x] === B[s + y]) { x++; y++; }
+          v[off + k] = x;
+          if (x >= N && y >= M) { found = true; break; }
+        }
+      }
+      if (found) {
+        let x = N, y = M;
+        for (let d = trace.length - 1; d > 0; d--) {
+          const t = trace[d], at = (k) => t[k + d + 1], k = x - y;
+          const pk = k === -d || (k !== d && at(k - 1) < at(k + 1)) ? k + 1 : k - 1, px = at(pk), py = px - pk;
+          while (x > px && y > py) { x--; y--; mid.push([s + x, s + y]); }
+          x = px; y = py;
+        }
+        while (x > 0 && y > 0) { x--; y--; mid.push([s + x, s + y]); }
+      }
+    }
+    pairs.push(...mid.reverse());
+    for (let i = 0; i < A.length - ea; i++) pairs.push([ea + i, eb + i]);
+    return pairs;
+  }
+  // texts[0] is the base, then one text per session. Each token of the last text gets the session that wrote it
+  // (0 = base), and each base token removed along the way becomes a deletion by the session that removed it, placed
+  // where it was. A word someone added and someone later removed leaves no trace.
+  function blame(texts) {
+    const W = texts.map(tokens);
+    let origin = W[0].map(() => 0), dels = [];
+    for (let i = 1; i < W.length; i++) {
+      const a = W[i - 1], b = W[i], toB = new Int32Array(a.length).fill(-1);
+      for (const [x, y] of lcsPairs(a, b)) toB[x] = y;
+      const posB = new Int32Array(a.length + 1); let last = 0; // "just before token x of a", in b: after the previous kept token
+      for (let x = 0; x < a.length; x++) { if (toB[x] >= 0) { posB[x] = toB[x]; last = toB[x] + 1; } else posB[x] = last; }
+      posB[a.length] = last;
+      const next = b.map(() => i);
+      for (let x = 0; x < a.length; x++) if (toB[x] >= 0) next[toB[x]] = origin[x];
+      dels = dels.map((d) => ({ ...d, pos: posB[d.pos] }));
+      for (let x = 0; x < a.length; x++) {
+        if (toB[x] >= 0 || origin[x] !== 0) continue;
+        const p = dels[dels.length - 1];
+        if (p && p.rev === i && p.end === x) { p.toks.push(a[x]); p.end = x + 1; } else dels.push({ pos: posB[x], rev: i, toks: [a[x]], end: x + 1 });
+      }
+      origin = next;
+    }
+    return { cur: W[W.length - 1], origin, dels };
+  }
+  // The edits in document order: { rev, pos, end (tokens of the last text), ins, del }. A removal and an addition at
+  // one place by one session are one edit. Changes of spacing alone are left out.
+  function editItems(texts) {
+    const { cur, origin, dels } = blame(texts), items = [], blank = (t) => !t.trim();
+    for (let i = 0; i < cur.length;) {
+      if (origin[i] === 0) { i++; continue; }
+      let j = i + 1;
+      while (j < cur.length && (origin[j] === origin[i] || (blank(cur[j]) && origin[j + 1] === origin[i]))) j++;
+      const ins = cur.slice(i, j).join("");
+      if (!blank(ins)) items.push({ rev: origin[i], pos: i, end: j, ins, del: "" });
+      i = j;
+    }
+    for (const d of dels) {
+      const del = d.toks.join(""); if (blank(del)) continue;
+      const m = items.find((it) => it.rev === d.rev && it.ins && it.pos <= d.pos && d.pos < it.end); // inside one session's addition: one edit
+      if (m) m.del = m.del ? m.del.trimEnd() + " " + del : del; else items.push({ rev: d.rev, pos: d.pos, end: d.pos, ins: "", del });
+    }
+    return { cur, items: items.sort((x, y) => x.pos - y.pos || (x.ins ? 1 : 0) - (y.ins ? 1 : 0)) };
+  }
+  // ---------- edits:core end
+  const edEl = document.getElementById("mk-edits") || document.body.appendChild(Object.assign(document.createElement("script"), { type: "application/json", id: "mk-edits" }));
+  let ed; try { ed = JSON.parse(edEl.textContent || "{}"); } catch { ed = {}; }
+  ed.version = 1; ed.revs = ed.revs || [];
+  let items = [], editsStale = false, showEdits = localStorage.getItem("mk-edits:" + location.pathname) !== "0";
+  const COLOURS = ["#2563eb", "#c2410c", "#15803d", "#9333ea", "#0e7490", "#be185d", "#a16207"];
+  const colour = (by) => (by === "Brian" ? COLOURS[0] : by === "Claude" ? COLOURS[1] : COLOURS[2 + ([...by].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 5)]);
+  const when = (at) => new Date(at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const BLOCKS = "p,div,li,h1,h2,h3,h4,h5,h6,td,th,pre,blockquote,section,figure,figcaption,dt,dd,summary,main";
+  // The document's text as edits see it: no page UI, no drawn deletions, a line break between blocks. segs say where each piece lives.
+  function textMap() {
+    const segs = []; let s = "", lastBlock = null;
+    const w = document.createTreeWalker(doc, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.parentElement.closest("[data-mk-ui],del.mk-del,script,style") ? 2 : 1) });
+    while (w.nextNode()) {
+      const n = w.currentNode, b = n.parentElement.closest(BLOCKS);
+      if (lastBlock && b !== lastBlock) s += "\n";
+      lastBlock = b; segs.push({ n, start: s.length }); s += n.nodeValue;
+    }
+    return { s, segs };
+  }
+  // A save records the text under the editor's name; one person's saves within 30 minutes are one session.
+  // shortcut: each session keeps a whole copy of the text, so a page edited in hundreds of sessions grows; Accept all resets it.
+  function recordRev() {
+    const { s } = textMap(), last = ed.revs[ed.revs.length - 1];
+    if (s === (last ? last.text : ed.base)) return;
+    if (last && last.by === author && !last.outside && Date.now() - Date.parse(last.at) < 30 * 60e3) { last.text = s; last.at = now(); }
+    else ed.revs.push({ by: author, at: now(), text: s });
+  }
+  const revOf = (i) => ed.revs[i - 1] || { by: author, at: now() }; // past the saved sessions: typing not saved yet
+  function unpaint() {
+    doc.querySelectorAll("del.mk-del").forEach((d) => d.remove());
+    doc.querySelectorAll("ins.mk-ins").forEach((i) => i.replaceWith(...i.childNodes));
+    doc.normalize();
+  }
+  function mark(node, k, it) { const by = revOf(it.rev).by; node.className = node.tagName === "INS" ? "mk-ins" : "mk-del"; node.dataset.e = k; node.style.setProperty("--ec", colour(by)); node.title = `${by}, ${when(revOf(it.rev).at)}: ${node.tagName === "INS" ? "added" : "removed"}`; return node; }
+  function paint() {
+    unpaint(); editsStale = false;
+    const { s, segs } = textMap(), texts = [ed.base ?? s, ...ed.revs.map((r) => r.text)];
+    if (s !== texts[texts.length - 1]) texts.push(s);
+    const r = editItems(texts); items = r.items;
+    if (showEdits && segs.length) {
+      const at = [0]; for (const t of r.cur) at.push(at[at.length - 1] + t.length);
+      const segAt = (o) => { let i = 0; while (i + 1 < segs.length && segs[i + 1].start <= o) i++; return segs[i]; };
+      const ops = items.flatMap((it, k) => [...(it.ins ? [{ o: at[it.pos], e: at[it.end], k, ins: true }] : []), ...(it.del ? [{ o: at[it.pos], k }] : [])]);
+      ops.sort((x, y) => y.o - x.o || (y.ins ? 1 : 0) - (x.ins ? 1 : 0)); // from the end; at one place the addition first, so the removal lands before it
+      for (const op of ops) {
+        const it = items[op.k];
+        if (op.ins) {
+          for (const g of [...segs].reverse()) {
+            const len = g.n.nodeValue.length, a = Math.max(op.o, g.start) - g.start, b = Math.min(op.e - g.start, len);
+            if (b <= a || !g.n.nodeValue.slice(a, b).trim()) continue;
+            if (b < len) g.n.splitText(b);
+            const piece = a > 0 ? g.n.splitText(a) : g.n, ins = mark(document.createElement("ins"), op.k, it);
+            piece.parentNode.insertBefore(ins, piece); ins.appendChild(piece);
+          }
+        } else {
+          const g = segAt(op.o), off = Math.min(Math.max(op.o - g.start, 0), g.n.nodeValue.length);
+          const del = mark(el("del", { "data-mk-ui": "1", contentEditable: "false" }, it.del.replace(/\s*\n\s*/g, " ¶ ")), op.k, it);
+          const inIns = g.n.parentElement.matches("ins.mk-ins") && !g.n.previousSibling; // an addition starts here: the removal goes before it, not inside
+          if (off === 0) (inIns ? g.n.parentElement : g.n).before(del); else { if (off < g.n.nodeValue.length) g.n.splitText(off); g.n.after(del); }
+        }
+      }
+    }
+    observer?.takeRecords(); // drawing the marks is not an edit
+    render();
+  }
+  function setShowEdits(on) { showEdits = on; editsBtn.setAttribute("aria-pressed", String(on)); localStorage.setItem("mk-edits:" + location.pathname, on ? "1" : "0"); paint(); }
+  function goToEdit(k) {
+    const t = doc.querySelector(`[data-e="${k}"]`); if (!t) return;
+    reveal(t); doc.querySelectorAll(".mk-ins.on,.mk-del.on").forEach((x) => x.classList.remove("on"));
+    doc.querySelectorAll(`[data-e="${k}"]`).forEach((x) => x.classList.add("on")); t.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+  function renderEdits(focusK) {
+    const clip = (t) => (t.length > 400 ? t.slice(0, 400) + "…" : t).replace(/\s*\n\s*/g, " ¶ ");
+    const since = ed.since ? ` since ${when(ed.since)}` : "";
+    pane.replaceChildren(el("p", { className: "mk-note" }, items.length ? `Who changed the text${since}. ${showEdits ? "Marked in the page too." : "± Edits shows them in the page."}` : `No edits${since}.`));
+    if (items.length) pane.append(el("div", { className: "act", style: "justify-content:flex-start;margin:0 0 8px" }, el("button", { type: "button", title: "Take the page as it is now as the new starting point and clear every mark", on: { click: () => { if (confirm("Accept every edit and clear the marks?")) { ed.base = textMap().s; ed.revs = []; ed.since = now(); ed.accepted = now(); paint(); changed(); } } } }, "Accept all")));
+    items.forEach((it, k) => {
+      const r = revOf(it.rev), kids = [el("div", { className: "row" }, el("span", { className: "mk-dot" }), `${r.by} · ${when(r.at)} · ${it.ins && it.del ? "changed" : it.ins ? "added" : "removed"}`)];
+      if (it.del) kids.push(el("div", { className: "old" }, clip(it.del)));
+      if (it.ins) kids.push(el("div", { className: "new" }, clip(it.ins)));
+      kids.push(el("div", { className: "act" }, el("button", { type: "button", disabled: !showEdits, title: showEdits ? "Show this edit in the page" : "Turn on ± Edits to see it in the page", on: { click: () => goToEdit(k) } }, "↗ Jump to edit")));
+      const card = el("div", { className: "mk-card k-edit" + (k === focusK ? " on" : ""), "data-edit": k }, ...kids); card.style.setProperty("--ec", colour(r.by));
+      pane.append(card); if (k === focusK) card.scrollIntoView({ block: "nearest" });
+    });
+  }
+  doc.addEventListener("click", (e) => { const m = !boxMode && e.target.closest("ins.mk-ins,del.mk-del"); if (m) { tab = "edits"; setPane(true); render(); renderEdits(Number(m.dataset.e)); goToEdit(m.dataset.e); } });
+  doc.addEventListener("focusout", () => { if (editsStale) paint(); });
+
+  // ---------- saving
+  function changed() { dirty = true; editsStale = true; status.textContent = "Unsaved changes"; status.classList.remove("err"); clearTimeout(timer); timer = setTimeout(() => save(false), 1500); }
+  initTrees(); initNav();
+  const observer = new MutationObserver((m) => { if (m.some((x) => !(x.target.closest && x.target.closest("[data-mk-ui]")))) changed(); });
+  observer.observe(doc, { subtree: true, childList: true, characterData: true });
+  function serialize() {
+    annEl.textContent = JSON.stringify(data, null, 1).replace(/</g, "\\u003c");
+    recordRev(); edEl.textContent = JSON.stringify(ed).replace(/</g, "\\u003c");
+    const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll("[data-mk-ui]").forEach((x) => x.remove());
+    clone.querySelectorAll("ins.mk-ins").forEach((x) => x.replaceWith(...x.childNodes));
+    const d = clone.querySelector("#doc"); d.removeAttribute("contenteditable");
+    clone.querySelectorAll(".on,.mk-picked,.mk-collapsed,.mk-filtered").forEach((x) => x.classList.remove("on", "mk-picked", "mk-collapsed", "mk-filtered"));
+    clone.style.removeProperty("scroll-padding-top"); if (!clone.getAttribute("style")) clone.removeAttribute("style");
+    clone.querySelector("body").classList.remove("mk-hide", "mk-boxmode", "mk-pane-closed", "mk-bars-closed"); if (!clone.querySelector("body").className) clone.querySelector("body").removeAttribute("class");
+    return "<!doctype html>\n" + clone.outerHTML + "\n";
+  }
+  let base = Date.parse(document.lastModified) || 0; // the markup server refuses a save from a stale tab (409)
+  let tabFp = null, lastSaveEnd = 0; // the fingerprint of the page as this tab last saved it (api/state compares)
+  async function save(manual, unloading) {
+    clearTimeout(timer);
+    const html = serialize();
+    if (!served) { if (manual) { const a = el("a", { href: URL.createObjectURL(new Blob([html], { type: "text/html" })), download: location.pathname.split("/").pop() || "page.html" }); a.click(); flash("Downloaded a copy. Replace the original file with it."); } return; }
+    if (saving) { timer = setTimeout(() => save(manual, unloading), 500); return; }
+    saving = true;
+    try {
+      const res = await fetch("api/save", { method: "POST", headers: { "content-type": "text/html", ...(base ? { "x-mk-base": String(base) } : {}), ...(tabFp ? { "x-mk-fp": tabFp } : {}) }, body: html, keepalive: !!unloading && new Blob([html]).size < 60000 }); // keepalive caps the body at 64 KB
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || res.status);
+      if (out.version) base = out.version;
+      if (out.fp) tabFp = out.fp;
+      dirty = false; status.textContent = "Saved " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); status.classList.remove("err");
+    } catch (err) { status.textContent = "NOT SAVED: " + err.message; status.classList.add("err"); if (/changed since/.test(err.message)) showChanged(); }
+    finally { saving = false; lastSaveEnd = performance.now(); }
+  }
+  function flash(msg, err) { status.textContent = msg; status.classList.toggle("err", !!err); }
+
+  // ---------- Send to agent now (2026-11-13): the server rings the page's agent session with the comment's id only
+  const sending = new Set();
+  const send = (c) => sendOnce(sending, c.id, () => sendNow(c));
+  async function sendNow(c) {
+    const saved = await saveFirst(() => ({ dirty, saving }), async () => { await save(false); return !dirty; }, (ms) => new Promise((r) => setTimeout(r, ms)));
+    if (!saved) return flash("Couldn't save first, so nothing was sent", true);
+    flash("Sending to the agent…");
+    try {
+      const res = await fetch("api/send", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: c.id }) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || res.status);
+      c.rung = now(); changed(); render(c.id);
+      flash(out.delivered ? "Sent to " + out.to : "Sent; the session will see it when it's back");
+    } catch (err) { flash("Not sent: " + err.message, true); }
+  }
+  // Every 5 s while the tab is visible: copy in new answers, and raise the notice if the page changed elsewhere.
+  let renderLater = false;
+  const typingInPane = () => side.contains(document.activeElement) && typingIn(document.activeElement);
+  side.addEventListener("focusout", () => setTimeout(() => { if (renderLater && !typingInPane()) { renderLater = false; render(); } }, 0));
+  async function poll() {
+    if (document.visibilityState !== "visible") return;
+    const sentAt = performance.now();
+    let s; try { const r = await fetch("api/state", { cache: "no-store" }); if (!r.ok) return; s = await r.json(); } catch { return; }
+    if (foldAnswers(data.comments, s.answers)) { changed(); if (typingInPane()) renderLater = true; else render(); } // never pull a box out from under his typing
+    if (pollSaysChanged({ fp: s.fp, version: s.version, sentAt }, { fp: tabFp, base, saving, lastSaveEnd })) showChanged();
+    else if (tabFp === null) tabFp = s.fp;
+  }
+  if (served) setInterval(poll, 5000);
+  function showChanged() {
+    if (document.getElementById("mk-changed")) return;
+    const when = new Date().toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    bar.append(el("div", { id: "mk-changed", role: "alert" },
+      el("b", {}, `This page was changed outside this tab on ${when}, usually by the agent. Refresh to see it. Anything you type before refreshing won't be saved.`),
+      el("button", { type: "button", on: { click: () => location.reload() } }, "Refresh now")));
+  }
+  addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(true); }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "m") { e.preventDefault(); addFromSelection(); }
+    if (e.key === "Escape" && boxMode) setBox(false);
+  });
+  addEventListener("beforeunload", (e) => { if (dirty) { save(false, true); e.preventDefault(); } });
+
+  setPane(localStorage.getItem("mk-pane:" + location.pathname) !== "0"); setEdit(true);
+  // Tracking starts the first time the page opens with this engine (saved at once, so a later file edit has something to differ from).
+  // After that, text that differs from the last recorded session was changed outside the browser: labelled Claude (Brian, 2026-11-11).
+  const opened = textMap().s, lastText = ed.revs.length ? ed.revs[ed.revs.length - 1].text : ed.base;
+  if (typeof ed.base !== "string") { ed.base = opened; ed.since = now(); if (served) save(false); }
+  else if (opened !== lastText) ed.revs.push({ by: "Claude", at: new Date(Date.parse(document.lastModified) || Date.now()).toISOString(), text: opened, outside: true });
+  editsBtn.setAttribute("aria-pressed", String(showEdits)); paint();
+})();
+</script>
+</body>
+</html>
